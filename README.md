@@ -59,3 +59,11 @@ Maak een pagina, open de HTML-editor (`</>`) en plak:
 ```
 
 Met `?embed=1` verdwijnt de grote titel en gebruikt de pagina altijd het lichte thema, zodat ze naadloos in Leho past.
+
+## Statistieken (Umami)
+
+Anonieme, cookieloze statistieken via [Umami Cloud](https://cloud.umami.is). Het script wordt enkel toegevoegd als
+`UMAMI_WEBSITE_ID` gezet is (in de workflow), en telt enkel op `devinekask.github.io`; lokaal wordt niets gemeten.
+
+Gemeten events: `visit` (leho/direct), `open-proposal`, `save-proposal`, `contact-email`, `contact-website`,
+`copy-link`, `filter-region`, `filter-tag`, `filter-saved` — telkens met bedrijfsnaam, tag of regio. Zoektermen worden niet gemeten.

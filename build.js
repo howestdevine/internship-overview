@@ -17,8 +17,15 @@ const template = await readFile(new URL('./public/index.html', import.meta.url),
 const buildId = createHash('sha256').update(JSON.stringify(proposals)).update(template).digest('hex').slice(0, 12);
 const updatedAt = new Date().toISOString();
 
+// Umami (anonieme, cookieloze statistieken): enkel in de gepubliceerde versie, enkel op het echte domein.
+// Paginabezoeken tellen we zelf (auto-track uit), anders telt elke filterwijziging als bezoek.
+const umamiId = process.env.UMAMI_WEBSITE_ID;
+const analytics = umamiId
+  ? `<script defer src="https://cloud.umami.is/script.js" data-website-id="${umamiId}" data-domains="devinekask.github.io" data-auto-track="false"></script>`
+  : '';
+
 const payload = JSON.stringify({ proposals, updatedAt, buildId }).replace(/</g, '\\u003c');
-const html = template.replace(
+const html = template.replace('<!-- analytics -->', analytics).replace(
   '<script id="embedded-data" type="application/json"></script>',
   `<script id="embedded-data" type="application/json">${payload}</script>`,
 );

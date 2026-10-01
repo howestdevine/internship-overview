@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <script>if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');</script>
 <title>Devine Internship Shortlist</title>
+<!-- analytics -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -181,6 +182,7 @@
   dd { margin: 0; overflow-wrap: anywhere; }
   a { color: var(--text); text-underline-offset: 3px; }
   a:hover { text-decoration-thickness: 2px; }
+  .site-foot { color: var(--muted); font-size: 12px; padding: 0 0 32px; }
   .toast {
     position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
     background: var(--text); color: var(--invert-text);
@@ -213,6 +215,7 @@
   <div class="meta"><span id="count"></span><span id="updated"></span></div>
   <div id="grid" class="grid" aria-live="polite"><div class="state">Loading internship proposals…</div></div>
 </main>
+<footer class="wrap site-foot">We count anonymous usage statistics. No cookies, no personal data.</footer>
 
 <dialog id="detail">
   <button class="close" aria-label="Close" onclick="this.closest('dialog').close()">×</button>
@@ -245,6 +248,8 @@
   const LEGACY_REGION = { nationaal: 'national', internationaal: 'international' };
 
   const $ = (id) => document.getElementById(id);
+  // Anonieme statistieken via Umami; doet niets als het script niet geladen is (lokaal of geblokkeerd)
+  const track = (name, data) => { try { window.umami?.track(name, data); } catch { /* negeren */ } };
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---- Shortlist (enkel in deze browser bewaard) ----
@@ -362,11 +367,12 @@
   }
 
   function openDetail(p) {
+    if (!($('detail').open && $('detail').dataset.slug === p.slug)) track('open-proposal', { company: p.company });
     const rows = [
       (p.city || p.country) && ['Location', esc(locationOf(p))],
       p.contact && ['Contact person', esc(p.contact)],
-      p.email && ['Email', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
-      p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(displayUrl(p.website))}</a>`],
+      p.email && ['Email', `<a href="mailto:${esc(p.email)}" data-track="contact-email">${esc(p.email)}</a>`],
+      p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener" data-track="contact-website">${esc(displayUrl(p.website))}</a>`],
       p.created && ['Added', fmtDate(p.created) + (isNew(p) ? ' <span class="badge-new">New</span>' : '')],
     ].filter(Boolean);
     $('detailBody').innerHTML = `
@@ -435,15 +441,16 @@
     const key = e.target.closest('button')?.dataset.region;
     if (!key) return;
     region = key;
+    if (key !== 'all') track('filter-region', { region: key });
     render();
   });
   $('tagsFilter').addEventListener('click', (e) => {
     const tag = e.target.closest('.chip')?.dataset.tag;
     if (!tag) return;
-    activeTags.has(tag) ? activeTags.delete(tag) : activeTags.add(tag);
+    activeTags.has(tag) ? activeTags.delete(tag) : (activeTags.add(tag), track('filter-tag', { tag }));
     render();
   });
-  $('favFilter').addEventListener('click', () => { onlyFavs = !onlyFavs; render(); });
+  $('favFilter').addEventListener('click', () => { onlyFavs = !onlyFavs; if (onlyFavs) track('filter-saved', { count: favs.size }); render(); });
   $('clearFilters').addEventListener('click', () => {
     $('search').value = '';
     activeTags.clear();
@@ -457,12 +464,18 @@
     const favId = e.target.closest('[data-fav]')?.dataset.fav;
     if (favId) {
       toggleFav(favId);
+      if (favs.has(favId)) track('save-proposal', { company: proposals.find((x) => x.id === favId)?.company });
       render();
       if ($('detail').open) openDetail(proposals.find((x) => x.id === favId));
       return;
     }
     const copySlug = e.target.closest('[data-copy]')?.dataset.copy;
-    if (copySlug) return copyLink(copySlug);
+    if (copySlug) {
+      track('copy-link', { company: proposals.find((x) => x.slug === copySlug)?.company });
+      return copyLink(copySlug);
+    }
+    const tracked = e.target.closest('a[data-track]');
+    if (tracked) track(tracked.dataset.track, { company: $('detailBody').querySelector('h2')?.textContent });
     const id = e.target.closest('.card-link')?.dataset.id;
     const p = id && proposals.find((x) => x.id === id);
     if (p) openDetail(p);
@@ -503,7 +516,8 @@
     render();
     const linked = proposals.find((p) => p.slug === hash);
     if (linked) openDetail(linked);
-    if (embedded) checkForUpdate(data);
+    const reloading = embedded && await checkForUpdate(data);
+    if (!reloading) trackVisit();
   }
 
   function showUpdated(iso) {
@@ -512,6 +526,18 @@
 
   // GitHub Pages laat browsers de pagina 10 minuten cachen. data.json wordt altijd vers opgevraagd;
   // is er een nieuwere versie, dan laden we de pagina opnieuw via een nieuwe URL (?v=…), die niet in de cache zit.
+  // Eén bezoek per paginalading, met vaste URL (filters staan in de events) en of het via Leho kwam
+  function trackVisit() {
+    const send = () => {
+      try {
+        window.umami?.track((props) => ({ ...props, url: '/', title: 'Devine Internship Shortlist' }));
+        track('visit', { context: isEmbed ? 'leho' : 'direct', deeplink: location.hash ? 'yes' : 'no' });
+      } catch { /* negeren */ }
+    };
+    if (document.readyState === 'complete') send();
+    else window.addEventListener('load', send, { once: true });
+  }
+
   async function checkForUpdate(data) {
     if (!data.buildId) return;
     try {
@@ -522,7 +548,7 @@
         const url = new URL(location.href);
         url.searchParams.set('v', latest.buildId);
         location.replace(url);
-        return;
+        return true;
       }
       showUpdated(latest.updatedAt);
     } catch { /* offline of geblokkeerd: de ingebakken versie blijft staan */ }
