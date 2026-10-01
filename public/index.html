@@ -20,6 +20,9 @@
     --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
     --shadow-hover: 0 8px 24px rgba(16, 24, 40, .10);
     --radius: 12px;
+    --star: #f5a524;
+    --new-bg: #dcf5e6;
+    --new-fg: #166534;
   }
   @media (prefers-color-scheme: dark) {
     :root:not(.embed) {
@@ -32,6 +35,8 @@
       --accent-soft: #1e2740;
       --shadow: none;
       --shadow-hover: 0 8px 24px rgba(0, 0, 0, .4);
+      --new-bg: #16301f;
+      --new-fg: #86e0a8;
     }
   }
   * { box-sizing: border-box; }
@@ -60,6 +65,8 @@
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
   }
+  /* Op gsm neemt een vaste balk te veel plaats in */
+  @media (max-width: 640px) { .toolbar { position: static; } }
   .search {
     width: 100%;
     padding: 11px 14px 11px 40px;
@@ -90,6 +97,15 @@
     cursor: pointer;
   }
   .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip .n { opacity: .65; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .chip[disabled] { opacity: .45; cursor: default; }
+  .chip.star[aria-pressed="true"] { background: var(--star); border-color: var(--star); color: #2b1d00; }
+  .link-btn {
+    border: 0; background: none; padding: 4px 2px; cursor: pointer;
+    color: var(--accent); font: inherit; font-size: 13px; text-decoration: underline;
+  }
+  .open-full { display: none; margin-left: auto; font-size: 13px; white-space: nowrap; }
+  .embed .open-full { display: inline; }
   .meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 13px; padding: 16px 0 8px; }
 
   .grid {
@@ -99,6 +115,7 @@
     padding-bottom: 48px;
   }
   .card {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -106,19 +123,33 @@
     display: flex; flex-direction: column; gap: 12px;
     box-shadow: var(--shadow);
     transition: box-shadow .15s, transform .15s;
-    cursor: pointer;
-    text-align: left; font: inherit; color: inherit;
   }
-  .card:hover, .card:focus-visible { box-shadow: var(--shadow-hover); transform: translateY(-2px); outline: none; }
-  .card h2 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
-  .country { font-size: 13px; color: var(--muted); margin-top: -8px; }
+  .card:hover, .card:focus-within { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .card h2 { margin: 0; font-size: 18px; letter-spacing: -0.01em; padding-right: 36px; }
+  /* De knop in de titel maakt de hele kaart klikbaar */
+  .card-link { all: unset; cursor: pointer; }
+  .card-link::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius); }
+  .card-link:focus-visible::after { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card-sub { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: -8px; }
+  .badge-new { font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; background: var(--new-bg); color: var(--new-fg); }
   .card .desc {
     margin: 0; color: var(--muted); font-size: 14px;
     display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .card .contact { font-size: 13px; color: var(--muted); margin-top: auto; }
+  .card-foot > :last-child { white-space: nowrap; }
+  .card-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); margin-top: auto; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .tag { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; }
+
+  .fav {
+    position: absolute; top: 14px; right: 14px; z-index: 1;
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 0; background: transparent; cursor: pointer;
+    color: var(--muted); display: grid; place-items: center;
+  }
+  .fav:hover { background: var(--accent-soft); }
+  .fav[aria-pressed="true"] { color: var(--star); }
+  .fav svg { width: 20px; height: 20px; }
 
   .state { text-align: center; color: var(--muted); padding: 64px 16px; grid-column: 1 / -1; }
 
@@ -135,6 +166,16 @@
   .dlg-body { padding: 28px; }
   .dlg-body h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: -0.02em; padding-right: 32px; }
   .dlg-body .full-desc { white-space: pre-line; margin: 16px 0 24px; }
+  .dlg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    padding: 7px 14px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn[aria-pressed="true"] { border-color: var(--star); }
+  .btn svg { width: 16px; height: 16px; }
+  .btn[aria-pressed="true"] svg { color: var(--star); }
   .close {
     position: absolute; top: 16px; right: 16px;
     width: 32px; height: 32px; border-radius: 8px;
@@ -146,12 +187,19 @@
   dt { color: var(--muted); }
   dd { margin: 0; overflow-wrap: anywhere; }
   a { color: var(--accent); }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--text); color: var(--surface);
+    padding: 8px 16px; border-radius: 8px; font-size: 14px;
+    opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10;
+  }
+  .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
 <header class="wrap">
   <h1>Stagevoorstellen</h1>
-  <p class="subtitle">Overzicht van de goedgekeurde stageplaatsen. Klik op een kaart voor alle details.</p>
+  <p class="subtitle">Overzicht van de goedgekeurde stageplaatsen. Klik op een kaart voor alle details, of bewaar ze met ★ in je shortlist.</p>
 </header>
 
 <div class="toolbar">
@@ -160,6 +208,9 @@
     <div class="filters">
       <div id="regionFilter" class="segmented" role="group" aria-label="Filter op regio"></div>
       <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter op tag"></div>
+      <button id="favFilter" class="chip star" aria-pressed="false">★ Mijn shortlist<span class="n">0</span></button>
+      <button id="clearFilters" class="link-btn" hidden>Wis filters</button>
+      <a id="openFull" class="open-full" target="_blank" rel="noopener">Open in nieuw venster ↗</a>
     </div>
   </div>
 </div>
@@ -173,6 +224,7 @@
   <button class="close" aria-label="Sluiten" onclick="this.closest('dialog').close()">×</button>
   <div class="dlg-body" id="detailBody"></div>
 </dialog>
+<div id="toast" class="toast" role="status"></div>
 
 <!-- build.js vult dit in voor de statische versie -->
 <script id="embedded-data" type="application/json"></script>
@@ -186,22 +238,37 @@
     ['#d9f3f5', '#115e67', '#13303a', '#82d8e0'],
     ['#fdf3c7', '#854d0e', '#352c12', '#f2d272'],
   ];
-  const dark = { get matches() { return !document.documentElement.classList.contains('embed') && darkQuery.matches; } };
   const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+  const isEmbed = document.documentElement.classList.contains('embed');
+  const dark = { get matches() { return !isEmbed && darkQuery.matches; } };
+  const NEW_DAYS = 7;
+  const STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>';
+  const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>';
 
   let proposals = [];
   let allTags = [];
   const activeTags = new Set();
   let region = 'all';
+  let onlyFavs = false;
 
   // Nationaal = België; alles met een ander (ingevuld) land is internationaal
   const HOME_COUNTRIES = ['belgium', 'belgië', 'belgie', 'belgique', 'be'];
   const regionOf = (p) => !p.country ? 'unknown' : HOME_COUNTRIES.includes(p.country.toLowerCase()) ? 'national' : 'international';
   const REGIONS = [['all', 'Alle'], ['national', 'Nationaal'], ['international', 'Internationaal']];
+  const REGION_PARAM = { national: 'nationaal', international: 'internationaal' };
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // ---- Shortlist (enkel in deze browser bewaard) ----
+  const FAV_KEY = 'stage-overzicht:shortlist';
+  const favs = new Set((() => { try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch { return []; } })());
+  function toggleFav(id) {
+    favs.has(id) ? favs.delete(id) : favs.add(id);
+    try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch { /* opslag niet beschikbaar */ }
+  }
+
+  // ---- Weergavehulpjes ----
   function tagStyle(tag) {
     const i = allTags.indexOf(tag) % TAG_PALETTE.length;
     const [bg, fg, dbg, dfg] = TAG_PALETTE[i < 0 ? 0 : i];
@@ -209,78 +276,186 @@
   }
   const tagsHtml = (tags) => tags.map((t) => `<span class="tag" style="${tagStyle(t)}">${esc(t)}</span>`).join('');
   const displayUrl = (url) => url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+  const isNew = (p) => p.created && Date.now() - new Date(p.created) < NEW_DAYS * 864e5;
+  const fmtDate = (d) => new Date(d).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  function matches(p, q) {
+  // Leesbare, stabiele link per voorstel (#rocani). Dubbele namen krijgen een stukje van het record-ID.
+  const slugify = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'voorstel';
+  function assignSlugs() {
+    const seen = {};
+    proposals.forEach((p) => { const s = slugify(p.company); seen[s] = (seen[s] || 0) + 1; });
+    proposals.forEach((p) => { const s = slugify(p.company); p.slug = seen[s] > 1 ? `${s}-${p.id.slice(-4).toLowerCase()}` : s; });
+  }
+
+  // ---- Filteren ----
+  // Alle filters behalve de tags; zo kunnen de tag-tellers tonen wat er bij elke tag te vinden is.
+  function matchesBase(p, q) {
+    if (onlyFavs && !favs.has(p.id)) return false;
     if (region !== 'all' && regionOf(p) !== region) return false;
-    if (activeTags.size && ![...activeTags].every((t) => p.tags.includes(t))) return false;
     if (!q) return true;
     return [p.company, p.description, p.contact, p.country, ...p.tags].join(' ').toLowerCase().includes(q);
   }
+  // Meerdere tags = voorstellen met minstens één van die tags
+  const matchesTags = (p) => !activeTags.size || p.tags.some((t) => activeTags.has(t));
+  const query = () => $('search').value.trim().toLowerCase();
 
   function render() {
-    const q = $('search').value.trim().toLowerCase();
-    const visible = proposals.filter((p) => matches(p, q));
+    const q = query();
+    const base = proposals.filter((p) => matchesBase(p, q));
+    const visible = base.filter(matchesTags);
+
     $('count').textContent = `${visible.length} van ${proposals.length} stagevoorstellen`;
     $('grid').innerHTML = visible.length
-      ? visible.map((p) => `
-          <button class="card" data-id="${esc(p.id)}">
-            <h2>${esc(p.company || 'Onbekend bedrijf')}</h2>
-            ${p.country ? `<div class="country">${esc(p.country)}</div>` : ''}
-            ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
-            <p class="desc">${esc(p.description)}</p>
-            ${p.contact ? `<div class="contact">Contact: ${esc(p.contact)}</div>` : ''}
-          </button>`).join('')
-      : `<div class="state">Geen stagevoorstellen gevonden voor deze zoekopdracht.</div>`;
+      ? visible.map(cardHtml).join('')
+      : `<div class="state">${onlyFavs && !favs.size
+          ? 'Je shortlist is nog leeg. Klik op ☆ bij een voorstel om het te bewaren.'
+          : 'Geen stagevoorstellen gevonden voor deze filters.'}</div>`;
+
+    renderRegionFilter(q);
+    renderTagFilter(base);
+    $('favFilter').setAttribute('aria-pressed', onlyFavs);
+    $('favFilter').querySelector('.n').textContent = favs.size;
+    $('clearFilters').hidden = !(q || activeTags.size || region !== 'all' || onlyFavs);
+    syncUrl();
   }
 
-  function renderRegionFilter() {
-    const count = (r) => r === 'all' ? proposals.length : proposals.filter((p) => regionOf(p) === r).length;
+  function cardHtml(p) {
+    const fav = favs.has(p.id);
+    return `
+      <article class="card">
+        <h2><button class="card-link" data-id="${esc(p.id)}">${esc(p.company || 'Onbekend bedrijf')}</button></h2>
+        <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Verwijder uit' : 'Bewaar in'} shortlist: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
+        <div class="card-sub">${isNew(p) ? '<span class="badge-new">Nieuw</span>' : ''}${esc(p.country)}</div>
+        ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
+        <p class="desc">${esc(p.description)}</p>
+        <div class="card-foot">
+          <span>${p.contact ? `Contact: ${esc(p.contact)}` : ''}</span>
+          ${p.created ? `<span>${fmtDate(p.created)}</span>` : ''}
+        </div>
+      </article>`;
+  }
+
+  function renderRegionFilter(q) {
+    const saved = region;
+    const count = (r) => { region = r; const n = proposals.filter((p) => matchesBase(p, q) && matchesTags(p)).length; region = saved; return n; };
     $('regionFilter').innerHTML = REGIONS.map(([key, label]) =>
       `<button aria-pressed="${region === key}" data-region="${key}">${label}<span class="n">${count(key)}</span></button>`).join('');
   }
 
-  function renderTagFilter() {
-    $('tagsFilter').innerHTML = allTags.map((t) =>
-      `<button class="chip" aria-pressed="${activeTags.has(t)}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+  function renderTagFilter(base) {
+    $('tagsFilter').innerHTML = allTags.map((t) => {
+      const n = base.filter((p) => p.tags.includes(t)).length;
+      const on = activeTags.has(t);
+      return `<button class="chip" aria-pressed="${on}" data-tag="${esc(t)}" ${!n && !on ? 'disabled' : ''}>${esc(t)}<span class="n">${n}</span></button>`;
+    }).join('');
   }
 
+  // ---- Detailvenster ----
   function openDetail(p) {
     const rows = [
       p.country && ['Land', esc(p.country)],
       p.contact && ['Contactpersoon', esc(p.contact)],
       p.email && ['E-mail', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
       p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(displayUrl(p.website))}</a>`],
+      p.created && ['Toegevoegd', fmtDate(p.created) + (isNew(p) ? ' <span class="badge-new">Nieuw</span>' : '')],
     ].filter(Boolean);
     $('detailBody').innerHTML = `
       <h2>${esc(p.company || 'Onbekend bedrijf')}</h2>
       ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
       <p class="full-desc">${esc(p.description)}</p>
-      <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
-    $('detail').showModal();
+      <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      <div class="dlg-actions">
+        <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'In shortlist' : STAR_OUTLINE + 'Bewaar in shortlist'}</button>
+        <button class="btn" data-copy="${esc(p.slug)}">Kopieer link</button>
+      </div>`;
+    $('detail').dataset.slug = p.slug;
+    if (!$('detail').open) $('detail').showModal();
+    syncUrl();
   }
 
+  // ---- URL bijhouden: ?q=…&tags=design,motion&regio=internationaal&shortlist=1#bedrijf ----
+  function stateUrl({ forShare = false, slug } = {}) {
+    const url = new URL(location.href);
+    const params = new URLSearchParams();
+    if (!forShare && isEmbed) params.set('embed', '1');
+    const q = $('search').value.trim();
+    if (q) params.set('q', q);
+    if (activeTags.size) params.set('tags', [...activeTags].join(','));
+    if (region !== 'all') params.set('regio', REGION_PARAM[region]);
+    if (onlyFavs && !forShare) params.set('shortlist', '1');
+    url.search = params.toString();
+    url.hash = slug ?? ($('detail').open ? $('detail').dataset.slug : '');
+    return url.toString();
+  }
+  function syncUrl() {
+    history.replaceState(null, '', stateUrl());
+    $('openFull').href = stateUrl({ forShare: true });
+  }
+  function readUrl() {
+    const params = new URLSearchParams(location.search);
+    $('search').value = params.get('q') || '';
+    (params.get('tags') || '').split(',').filter((t) => allTags.includes(t)).forEach((t) => activeTags.add(t));
+    region = Object.keys(REGION_PARAM).find((k) => REGION_PARAM[k] === params.get('regio')) || 'all';
+    onlyFavs = params.get('shortlist') === '1';
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2200);
+  }
+  async function copyLink(slug) {
+    const link = stateUrl({ forShare: true, slug });
+    try {
+      await navigator.clipboard.writeText(link);
+      toast('Link gekopieerd');
+    } catch {
+      // Klembord kan geblokkeerd zijn in een iframe (Leho); toon de link dan om manueel te kopiëren
+      window.prompt('Kopieer deze link:', link);
+    }
+  }
+
+  // ---- Events ----
   $('search').addEventListener('input', render);
   $('regionFilter').addEventListener('click', (e) => {
     const key = e.target.closest('button')?.dataset.region;
     if (!key) return;
     region = key;
-    renderRegionFilter();
     render();
   });
   $('tagsFilter').addEventListener('click', (e) => {
     const tag = e.target.closest('.chip')?.dataset.tag;
     if (!tag) return;
     activeTags.has(tag) ? activeTags.delete(tag) : activeTags.add(tag);
-    renderTagFilter();
     render();
   });
-  $('grid').addEventListener('click', (e) => {
-    const id = e.target.closest('.card')?.dataset.id;
-    const p = proposals.find((x) => x.id === id);
+  $('favFilter').addEventListener('click', () => { onlyFavs = !onlyFavs; render(); });
+  $('clearFilters').addEventListener('click', () => {
+    $('search').value = '';
+    activeTags.clear();
+    region = 'all';
+    onlyFavs = false;
+    render();
+  });
+  document.addEventListener('click', (e) => {
+    const favId = e.target.closest('[data-fav]')?.dataset.fav;
+    if (favId) {
+      toggleFav(favId);
+      render();
+      if ($('detail').open) openDetail(proposals.find((x) => x.id === favId));
+      return;
+    }
+    const copySlug = e.target.closest('[data-copy]')?.dataset.copy;
+    if (copySlug) return copyLink(copySlug);
+    const id = e.target.closest('.card-link')?.dataset.id;
+    const p = id && proposals.find((x) => x.id === id);
     if (p) openDetail(p);
   });
   $('detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
-  darkQuery.addEventListener('change', () => { renderTagFilter(); render(); });
+  $('detail').addEventListener('close', syncUrl);
+  darkQuery.addEventListener('change', render);
 
   async function load() {
     const embedded = $('embedded-data').textContent.trim();
@@ -292,12 +467,15 @@
     // Nieuwste voorstellen eerst
     proposals = data.proposals.sort((a, b) => String(b.created).localeCompare(String(a.created)));
     allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'nl'));
+    assignSlugs();
     if (data.updatedAt) {
       $('updated').textContent = `Bijgewerkt: ${new Date(data.updatedAt).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' })}`;
     }
-    renderRegionFilter();
-    renderTagFilter();
+    const hash = decodeURIComponent(location.hash.slice(1));
+    readUrl();
     render();
+    const linked = proposals.find((p) => p.slug === hash);
+    if (linked) openDetail(linked);
   }
 
   load().catch((err) => {
