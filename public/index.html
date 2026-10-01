@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <script>if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');</script>
-<title>Stagevoorstellen</title>
+<title>Internship Proposals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -198,30 +198,30 @@
 </head>
 <body>
 <header class="wrap">
-  <h1>Stagevoorstellen</h1>
-  <p class="subtitle">Overzicht van de goedgekeurde stageplaatsen. Klik op een kaart voor alle details, of bewaar ze met ★ in je shortlist.</p>
+  <h1>Internship Proposals</h1>
+  <p class="subtitle">Overview of approved internship placements. Click a card for all details, or save it to your shortlist with ★.</p>
 </header>
 
 <div class="toolbar">
   <div class="wrap">
-    <input id="search" class="search" type="search" placeholder="Zoek op bedrijf, omschrijving of tag…" aria-label="Zoeken">
+    <input id="search" class="search" type="search" placeholder="Search by company, description or tag…" aria-label="Search">
     <div class="filters">
-      <div id="regionFilter" class="segmented" role="group" aria-label="Filter op regio"></div>
-      <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter op tag"></div>
-      <button id="favFilter" class="chip star" aria-pressed="false">★ Mijn shortlist<span class="n">0</span></button>
-      <button id="clearFilters" class="link-btn" hidden>Wis filters</button>
-      <a id="openFull" class="open-full" target="_blank" rel="noopener">Open in nieuw venster ↗</a>
+      <div id="regionFilter" class="segmented" role="group" aria-label="Filter by region"></div>
+      <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter by tag"></div>
+      <button id="favFilter" class="chip star" aria-pressed="false">★ My shortlist<span class="n">0</span></button>
+      <button id="clearFilters" class="link-btn" hidden>Clear filters</button>
+      <a id="openFull" class="open-full" target="_blank" rel="noopener">Open in new window ↗</a>
     </div>
   </div>
 </div>
 
 <main class="wrap">
   <div class="meta"><span id="count"></span><span id="updated"></span></div>
-  <div id="grid" class="grid" aria-live="polite"><div class="state">Stagevoorstellen laden…</div></div>
+  <div id="grid" class="grid" aria-live="polite"><div class="state">Loading internship proposals…</div></div>
 </main>
 
 <dialog id="detail">
-  <button class="close" aria-label="Sluiten" onclick="this.closest('dialog').close()">×</button>
+  <button class="close" aria-label="Close" onclick="this.closest('dialog').close()">×</button>
   <div class="dlg-body" id="detailBody"></div>
 </dialog>
 <div id="toast" class="toast" role="status"></div>
@@ -254,8 +254,9 @@
   // Nationaal = België; alles met een ander (ingevuld) land is internationaal
   const HOME_COUNTRIES = ['belgium', 'belgië', 'belgie', 'belgique', 'be'];
   const regionOf = (p) => !p.country ? 'unknown' : HOME_COUNTRIES.includes(p.country.toLowerCase()) ? 'national' : 'international';
-  const REGIONS = [['all', 'Alle'], ['national', 'Nationaal'], ['international', 'Internationaal']];
-  const REGION_PARAM = { national: 'nationaal', international: 'internationaal' };
+  const REGIONS = [['all', 'All'], ['national', 'National'], ['international', 'International']];
+  // Oude Nederlandstalige links (?regio=nationaal) blijven werken
+  const LEGACY_REGION = { nationaal: 'national', internationaal: 'international' };
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -277,7 +278,7 @@
   const tagsHtml = (tags) => tags.map((t) => `<span class="tag" style="${tagStyle(t)}">${esc(t)}</span>`).join('');
   const displayUrl = (url) => url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
   const isNew = (p) => p.created && Date.now() - new Date(p.created) < NEW_DAYS * 864e5;
-  const fmtDate = (d) => new Date(d).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
   // Leesbare, stabiele link per voorstel (#rocani). Dubbele namen krijgen een stukje van het record-ID.
   const slugify = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'voorstel';
@@ -304,12 +305,12 @@
     const base = proposals.filter((p) => matchesBase(p, q));
     const visible = base.filter(matchesTags);
 
-    $('count').textContent = `${visible.length} van ${proposals.length} stagevoorstellen`;
+    $('count').textContent = `${visible.length} of ${proposals.length} internship proposals`;
     $('grid').innerHTML = visible.length
       ? visible.map(cardHtml).join('')
       : `<div class="state">${onlyFavs && !favs.size
-          ? 'Je shortlist is nog leeg. Klik op ☆ bij een voorstel om het te bewaren.'
-          : 'Geen stagevoorstellen gevonden voor deze filters.'}</div>`;
+          ? 'Your shortlist is still empty. Click ☆ on a proposal to save it.'
+          : 'No internship proposals match these filters.'}</div>`;
 
     renderRegionFilter(q);
     renderTagFilter(base);
@@ -323,9 +324,9 @@
     const fav = favs.has(p.id);
     return `
       <article class="card">
-        <h2><button class="card-link" data-id="${esc(p.id)}">${esc(p.company || 'Onbekend bedrijf')}</button></h2>
-        <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Verwijder uit' : 'Bewaar in'} shortlist: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
-        <div class="card-sub">${isNew(p) ? '<span class="badge-new">Nieuw</span>' : ''}${esc(p.country)}</div>
+        <h2><button class="card-link" data-id="${esc(p.id)}">${esc(p.company || 'Unknown company')}</button></h2>
+        <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Save to'} shortlist: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
+        <div class="card-sub">${isNew(p) ? '<span class="badge-new">New</span>' : ''}${esc(p.country)}</div>
         ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
         <p class="desc">${esc(p.description)}</p>
         <div class="card-foot">
@@ -353,27 +354,27 @@
   // ---- Detailvenster ----
   function openDetail(p) {
     const rows = [
-      p.country && ['Land', esc(p.country)],
-      p.contact && ['Contactpersoon', esc(p.contact)],
-      p.email && ['E-mail', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
+      p.country && ['Country', esc(p.country)],
+      p.contact && ['Contact person', esc(p.contact)],
+      p.email && ['Email', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
       p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(displayUrl(p.website))}</a>`],
-      p.created && ['Toegevoegd', fmtDate(p.created) + (isNew(p) ? ' <span class="badge-new">Nieuw</span>' : '')],
+      p.created && ['Added', fmtDate(p.created) + (isNew(p) ? ' <span class="badge-new">New</span>' : '')],
     ].filter(Boolean);
     $('detailBody').innerHTML = `
-      <h2>${esc(p.company || 'Onbekend bedrijf')}</h2>
+      <h2>${esc(p.company || 'Unknown company')}</h2>
       ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
       <p class="full-desc">${esc(p.description)}</p>
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       <div class="dlg-actions">
-        <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'In shortlist' : STAR_OUTLINE + 'Bewaar in shortlist'}</button>
-        <button class="btn" data-copy="${esc(p.slug)}">Kopieer link</button>
+        <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'In shortlist' : STAR_OUTLINE + 'Save to shortlist'}</button>
+        <button class="btn" data-copy="${esc(p.slug)}">Copy link</button>
       </div>`;
     $('detail').dataset.slug = p.slug;
     if (!$('detail').open) $('detail').showModal();
     syncUrl();
   }
 
-  // ---- URL bijhouden: ?q=…&tags=design,motion&regio=internationaal&shortlist=1#bedrijf ----
+  // ---- URL bijhouden: ?q=…&tags=design,motion&region=international&shortlist=1#company ----
   function stateUrl({ forShare = false, slug } = {}) {
     const url = new URL(location.href);
     const params = new URLSearchParams();
@@ -381,7 +382,7 @@
     const q = $('search').value.trim();
     if (q) params.set('q', q);
     if (activeTags.size) params.set('tags', [...activeTags].join(','));
-    if (region !== 'all') params.set('regio', REGION_PARAM[region]);
+    if (region !== 'all') params.set('region', region);
     if (onlyFavs && !forShare) params.set('shortlist', '1');
     url.search = params.toString();
     url.hash = slug ?? ($('detail').open ? $('detail').dataset.slug : '');
@@ -395,7 +396,8 @@
     const params = new URLSearchParams(location.search);
     $('search').value = params.get('q') || '';
     (params.get('tags') || '').split(',').filter((t) => allTags.includes(t)).forEach((t) => activeTags.add(t));
-    region = Object.keys(REGION_PARAM).find((k) => REGION_PARAM[k] === params.get('regio')) || 'all';
+    const r = params.get('region') || LEGACY_REGION[params.get('regio')];
+    region = REGIONS.some(([key]) => key === r) ? r : 'all';
     onlyFavs = params.get('shortlist') === '1';
   }
 
@@ -410,10 +412,10 @@
     const link = stateUrl({ forShare: true, slug });
     try {
       await navigator.clipboard.writeText(link);
-      toast('Link gekopieerd');
+      toast('Link copied');
     } catch {
       // Klembord kan geblokkeerd zijn in een iframe (Leho); toon de link dan om manueel te kopiëren
-      window.prompt('Kopieer deze link:', link);
+      window.prompt('Copy this link:', link);
     }
   }
 
@@ -466,10 +468,10 @@
     });
     // Nieuwste voorstellen eerst
     proposals = data.proposals.sort((a, b) => String(b.created).localeCompare(String(a.created)));
-    allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'nl'));
+    allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'en'));
     assignSlugs();
     if (data.updatedAt) {
-      $('updated').textContent = `Bijgewerkt: ${new Date(data.updatedAt).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' })}`;
+      $('updated').textContent = `Updated: ${new Date(data.updatedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}`;
     }
     const hash = decodeURIComponent(location.hash.slice(1));
     readUrl();
@@ -480,7 +482,7 @@
 
   load().catch((err) => {
     console.error(err);
-    $('grid').innerHTML = `<div class="state">Kon de stagevoorstellen niet laden.<br><small>${esc(err.message)}</small></div>`;
+    $('grid').innerHTML = `<div class="state">Could not load the internship proposals.<br><small>${esc(err.message)}</small></div>`;
   });
 </script>
 </body>
