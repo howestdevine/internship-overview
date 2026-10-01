@@ -223,6 +223,8 @@
 <script id="embedded-data" type="application/json"></script>
 <script>
   const isEmbed = document.documentElement.classList.contains('embed');
+  // ?v=… komt van een eerdere automatische vernieuwing (zie checkForUpdate)
+  const requestedVersion = new URLSearchParams(location.search).get('v');
   const NEW_DAYS = 7;
   const STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>';
   const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>';
@@ -494,14 +496,35 @@
     proposals = data.proposals.sort((a, b) => String(b.created).localeCompare(String(a.created)));
     allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'en'));
     assignSlugs();
-    if (data.updatedAt) {
-      $('updated').textContent = `Updated: ${new Date(data.updatedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}`;
-    }
+    showUpdated(data.updatedAt);
     const hash = decodeURIComponent(location.hash.slice(1));
     readUrl();
     render();
     const linked = proposals.find((p) => p.slug === hash);
     if (linked) openDetail(linked);
+    if (embedded) checkForUpdate(data);
+  }
+
+  function showUpdated(iso) {
+    if (iso) $('updated').textContent = `Updated: ${new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}`;
+  }
+
+  // GitHub Pages laat browsers de pagina 10 minuten cachen. data.json wordt altijd vers opgevraagd;
+  // is er een nieuwere versie, dan laden we de pagina opnieuw via een nieuwe URL (?v=…), die niet in de cache zit.
+  async function checkForUpdate(data) {
+    if (!data.buildId) return;
+    try {
+      const res = await fetch('data.json', { cache: 'no-cache' });
+      if (!res.ok) return;
+      const latest = await res.json();
+      if (latest.buildId !== data.buildId && requestedVersion !== latest.buildId) {
+        const url = new URL(location.href);
+        url.searchParams.set('v', latest.buildId);
+        location.replace(url);
+        return;
+      }
+      showUpdated(latest.updatedAt);
+    } catch { /* offline of geblokkeerd: de ingebakken versie blijft staan */ }
   }
 
   load().catch((err) => {
