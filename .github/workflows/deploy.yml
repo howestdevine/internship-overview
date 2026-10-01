@@ -36,6 +36,7 @@ jobs:
           AIRTABLE_VIEW: viw9HZhqdLERzl3u7
           STATUS_FIELD: Status
           STATUS_VALUE: Goedgekeurd
+          UMAMI_WEBSITE_ID: 92a9870b-2ef7-47d4-b135-227ebcb7e09d
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
