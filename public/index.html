@@ -204,7 +204,7 @@
 
 <div class="toolbar">
   <div class="wrap">
-    <input id="search" class="search" type="search" placeholder="Search by company, description or tag…" aria-label="Search">
+    <input id="search" class="search" type="search" placeholder="Search by company, city, description or tag…" aria-label="Search">
     <div class="filters">
       <div id="regionFilter" class="segmented" role="group" aria-label="Filter by region"></div>
       <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter by tag"></div>
@@ -278,6 +278,7 @@
   const tagsHtml = (tags) => tags.map((t) => `<span class="tag" style="${tagStyle(t)}">${esc(t)}</span>`).join('');
   const displayUrl = (url) => url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
   const isNew = (p) => p.created && Date.now() - new Date(p.created) < NEW_DAYS * 864e5;
+  const locationOf = (p) => [p.city, p.country].filter(Boolean).join(', ');
   const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
   // Leesbare, stabiele link per voorstel (#rocani). Dubbele namen krijgen een stukje van het record-ID.
@@ -294,7 +295,7 @@
     if (onlyFavs && !favs.has(p.id)) return false;
     if (region !== 'all' && regionOf(p) !== region) return false;
     if (!q) return true;
-    return [p.company, p.description, p.contact, p.country, ...p.tags].join(' ').toLowerCase().includes(q);
+    return [p.company, p.description, p.contact, p.city, p.country, ...p.tags].join(' ').toLowerCase().includes(q);
   }
   // Meerdere tags = voorstellen met minstens één van die tags
   const matchesTags = (p) => !activeTags.size || p.tags.some((t) => activeTags.has(t));
@@ -326,7 +327,7 @@
       <article class="card">
         <h2><button class="card-link" data-id="${esc(p.id)}">${esc(p.company || 'Unknown company')}</button></h2>
         <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Save to'} shortlist: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
-        <div class="card-sub">${isNew(p) ? '<span class="badge-new">New</span>' : ''}${esc(p.country)}</div>
+        <div class="card-sub">${isNew(p) ? '<span class="badge-new">New</span>' : ''}${esc(locationOf(p))}</div>
         ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
         <p class="desc">${esc(p.description)}</p>
         <div class="card-foot">
@@ -354,7 +355,7 @@
   // ---- Detailvenster ----
   function openDetail(p) {
     const rows = [
-      p.country && ['Country', esc(p.country)],
+      (p.city || p.country) && ['Location', esc(locationOf(p))],
       p.contact && ['Contact person', esc(p.contact)],
       p.email && ['Email', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
       p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(displayUrl(p.website))}</a>`],
