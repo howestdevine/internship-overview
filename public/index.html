@@ -193,7 +193,7 @@
 <body>
 <header class="wrap">
   <h1><span>Devine</span><span>Internship</span><span>Shortlist</span></h1>
-  <p class="subtitle">Overview of approved internship placements. Click a card for all details, or save it to your shortlist with ★.</p>
+  <p class="subtitle">Overview of approved internship placements. Click a card for all details, or save it with ★.</p>
 </header>
 
 <div class="toolbar">
@@ -202,7 +202,7 @@
     <div class="filters">
       <div id="regionFilter" class="segmented" role="group" aria-label="Filter by region"></div>
       <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter by tag"></div>
-      <button id="favFilter" class="chip star" aria-pressed="false">★ My shortlist<span class="n">0</span></button>
+      <button id="favFilter" class="chip star" aria-pressed="false">★ Saved<span class="n">0</span></button>
       <button id="clearFilters" class="link-btn" hidden>Clear filters</button>
       <a id="openFull" class="open-full" target="_blank" rel="noopener">Open in new window ↗</a>
     </div>
@@ -292,7 +292,7 @@
     $('grid').innerHTML = visible.length
       ? visible.map(cardHtml).join('')
       : `<div class="state">${onlyFavs && !favs.size
-          ? 'Your shortlist is still empty. Click ☆ on a proposal to save it.'
+          ? 'You haven\'t saved any proposals yet. Click ☆ on a proposal to save it.'
           : 'No internship proposals match these filters.'}</div>`;
 
     renderRegionFilter(q);
@@ -308,7 +308,7 @@
     return `
       <article class="card">
         <h2><button class="card-link" data-id="${esc(p.id)}">${esc(p.company || 'Unknown company')}</button></h2>
-        <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from' : 'Save to'} shortlist: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
+        <button class="fav" data-fav="${esc(p.id)}" aria-pressed="${fav}" aria-label="${fav ? 'Remove from saved' : 'Save'}: ${esc(p.company)}">${fav ? STAR : STAR_OUTLINE}</button>
         <div class="card-sub">${isNew(p) ? '<span class="badge-new">New</span>' : ''}${esc(locationOf(p))}</div>
         ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
         <p class="desc">${esc(p.description)}</p>
@@ -375,7 +375,7 @@
       <p class="full-desc">${esc(p.description)}</p>
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       <div class="dlg-actions">
-        <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'In shortlist' : STAR_OUTLINE + 'Save to shortlist'}</button>
+        <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'Saved' : STAR_OUTLINE + 'Save'}</button>
         <button class="btn" data-copy="${esc(p.slug)}">Copy link</button>
       </div>
       ${navHtml(p)}`;
@@ -384,7 +384,7 @@
     syncUrl();
   }
 
-  // ---- URL bijhouden: ?q=…&tags=design,motion&region=international&shortlist=1#company ----
+  // ---- URL bijhouden: ?q=…&tags=design,motion&region=international&saved=1#company ----
   function stateUrl({ forShare = false, slug } = {}) {
     const url = new URL(location.href);
     const params = new URLSearchParams();
@@ -393,7 +393,7 @@
     if (q) params.set('q', q);
     if (activeTags.size) params.set('tags', [...activeTags].join(','));
     if (region !== 'all') params.set('region', region);
-    if (onlyFavs && !forShare) params.set('shortlist', '1');
+    if (onlyFavs && !forShare) params.set('saved', '1');
     url.search = params.toString();
     url.hash = slug ?? ($('detail').open ? $('detail').dataset.slug : '');
     return url.toString();
@@ -408,7 +408,7 @@
     (params.get('tags') || '').split(',').filter((t) => allTags.includes(t)).forEach((t) => activeTags.add(t));
     const r = params.get('region') || LEGACY_REGION[params.get('regio')];
     region = REGIONS.some(([key]) => key === r) ? r : 'all';
-    onlyFavs = params.get('shortlist') === '1';
+    onlyFavs = params.get('saved') === '1' || params.get('shortlist') === '1'; // shortlist = oude naam
   }
 
   let toastTimer;
