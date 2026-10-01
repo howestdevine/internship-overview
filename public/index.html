@@ -155,6 +155,9 @@
   .dlg-body { padding: 32px; }
   .dlg-body h2 { margin: 0 0 14px; font-size: 28px; font-weight: 700; line-height: 1.2; padding-right: 36px; }
   .dlg-body .full-desc { white-space: pre-line; margin: 18px 0 26px; font-weight: 300; }
+  .dlg-nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+  .dlg-nav .pos { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .btn[disabled] { opacity: .3; cursor: default; background: transparent; color: var(--text); }
   .dlg-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line-soft); }
   /* Knoppen zoals de "linkButton" van devine.be */
   .btn {
@@ -229,6 +232,7 @@
   const activeTags = new Set();
   let region = 'all';
   let onlyFavs = false;
+  let visibleList = [];
 
   // Nationaal = België; alles met een ander (ingevuld) land is internationaal
   const HOME_COUNTRIES = ['belgium', 'belgië', 'belgie', 'belgique', 'be'];
@@ -279,6 +283,7 @@
     const q = query();
     const base = proposals.filter((p) => matchesBase(p, q));
     const visible = base.filter(matchesTags);
+    visibleList = visible;
 
     $('count').textContent = `${visible.length} of ${proposals.length} internship proposals`;
     $('grid').innerHTML = visible.length
@@ -327,6 +332,32 @@
   }
 
   // ---- Detailvenster ----
+  // Vorige/volgende binnen de huidige (gefilterde) lijst; valt het voorstel buiten de filters, dan de volledige lijst
+  const navList = (p) => visibleList.includes(p) ? visibleList : proposals;
+  function neighbour(p, step) {
+    const list = navList(p);
+    return list[list.indexOf(p) + step];
+  }
+  function navHtml(p) {
+    const list = navList(p);
+    if (list.length < 2) return '';
+    const i = list.indexOf(p);
+    return `
+      <nav class="dlg-nav" aria-label="Browse proposals">
+        <button class="btn" data-step="-1" ${i === 0 ? 'disabled' : ''} aria-label="Previous proposal">← Previous</button>
+        <span class="pos">${i + 1} / ${list.length}</span>
+        <button class="btn" data-step="1" ${i === list.length - 1 ? 'disabled' : ''} aria-label="Next proposal">Next →</button>
+      </nav>`;
+  }
+  function step(dir) {
+    const current = proposals.find((p) => p.slug === $('detail').dataset.slug);
+    const next = current && neighbour(current, dir);
+    if (!next) return;
+    openDetail(next);
+    $('detail').scrollTop = 0;
+    $('detail').querySelector(`[data-step="${dir}"]:not([disabled])`)?.focus();
+  }
+
   function openDetail(p) {
     const rows = [
       (p.city || p.country) && ['Location', esc(locationOf(p))],
@@ -343,7 +374,8 @@
       <div class="dlg-actions">
         <button class="btn" data-fav="${esc(p.id)}" aria-pressed="${favs.has(p.id)}">${favs.has(p.id) ? STAR + 'In shortlist' : STAR_OUTLINE + 'Save to shortlist'}</button>
         <button class="btn" data-copy="${esc(p.slug)}">Copy link</button>
-      </div>`;
+      </div>
+      ${navHtml(p)}`;
     $('detail').dataset.slug = p.slug;
     if (!$('detail').open) $('detail').showModal();
     syncUrl();
@@ -417,6 +449,8 @@
     render();
   });
   document.addEventListener('click', (e) => {
+    const stepBtn = e.target.closest('[data-step]');
+    if (stepBtn) return step(Number(stepBtn.dataset.step));
     const favId = e.target.closest('[data-fav]')?.dataset.fav;
     if (favId) {
       toggleFav(favId);
@@ -432,6 +466,19 @@
   });
   $('detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
   $('detail').addEventListener('close', syncUrl);
+  $('detail').addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  });
+  // Vegen op gsm: links/rechts naar het volgende/vorige voorstel
+  let touchX = null;
+  $('detail').addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+  $('detail').addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    touchX = null;
+    if (Math.abs(dx) > 60) step(dx < 0 ? 1 : -1);
+  });
 
   async function load() {
     const embedded = $('embedded-data').textContent.trim();
