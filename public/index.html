@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<script>if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');</script>
+<title>Stagevoorstellen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --text: #15181e;
+    --muted: #5d6573;
+    --border: #e3e6eb;
+    --accent: #2f5bea;
+    --accent-soft: #e8eefe;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 1px 3px rgba(16, 24, 40, .06);
+    --shadow-hover: 0 8px 24px rgba(16, 24, 40, .10);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not(.embed) {
+      --bg: #0f1115;
+      --surface: #171a21;
+      --text: #e8eaee;
+      --muted: #9aa2b1;
+      --border: #272c36;
+      --accent: #7c9cff;
+      --accent-soft: #1e2740;
+      --shadow: none;
+      --shadow-hover: 0 8px 24px rgba(0, 0, 0, .4);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+
+  /* Embed-modus (?embed=1) voor Leho/Canvas: geen titelblok, witte achtergrond, altijd licht */
+  .embed { --bg: #ffffff; }
+  .embed header { display: none; }
+
+  header { padding: 40px 0 24px; }
+  h1 { margin: 0 0 4px; font-size: clamp(26px, 4vw, 34px); letter-spacing: -0.02em; }
+  .subtitle { margin: 0; color: var(--muted); }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .search {
+    width: 100%;
+    padding: 11px 14px 11px 40px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238a93a3' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='m13 13 4 4'/%3E%3C/svg%3E") no-repeat 13px center;
+    color: var(--text);
+    font: inherit;
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 10px; }
+  .tags-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+  .segmented { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+  .segmented button {
+    border: 0; background: transparent; color: var(--muted);
+    padding: 4px 12px; border-radius: 999px;
+    font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .segmented .n { opacity: .7; font-weight: 400; margin-left: 4px; }
+  .chip {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font: inherit; font-size: 13px;
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 13px; padding: 16px 0 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+    padding-bottom: 48px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .15s, transform .15s;
+    cursor: pointer;
+    text-align: left; font: inherit; color: inherit;
+  }
+  .card:hover, .card:focus-visible { box-shadow: var(--shadow-hover); transform: translateY(-2px); outline: none; }
+  .card h2 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
+  .country { font-size: 13px; color: var(--muted); margin-top: -8px; }
+  .card .desc {
+    margin: 0; color: var(--muted); font-size: 14px;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card .contact { font-size: 13px; color: var(--muted); margin-top: auto; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; }
+
+  .state { text-align: center; color: var(--muted); padding: 64px 16px; grid-column: 1 / -1; }
+
+  dialog {
+    width: min(640px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0;
+    background: var(--surface);
+    color: var(--text);
+  }
+  dialog::backdrop { background: rgba(10, 12, 16, .5); }
+  .dlg-body { padding: 28px; }
+  .dlg-body h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: -0.02em; padding-right: 32px; }
+  .dlg-body .full-desc { white-space: pre-line; margin: 16px 0 24px; }
+  .close {
+    position: absolute; top: 16px; right: 16px;
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 0; background: transparent; color: var(--muted);
+    font-size: 22px; cursor: pointer;
+  }
+  .close:hover { background: var(--accent-soft); }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; font-size: 14px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>Stagevoorstellen</h1>
+  <p class="subtitle">Overzicht van de goedgekeurde stageplaatsen. Klik op een kaart voor alle details.</p>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <input id="search" class="search" type="search" placeholder="Zoek op bedrijf, omschrijving of tag…" aria-label="Zoeken">
+    <div class="filters">
+      <div id="regionFilter" class="segmented" role="group" aria-label="Filter op regio"></div>
+      <div id="tagsFilter" class="tags-filter" role="group" aria-label="Filter op tag"></div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="meta"><span id="count"></span><span id="updated"></span></div>
+  <div id="grid" class="grid" aria-live="polite"><div class="state">Stagevoorstellen laden…</div></div>
+</main>
+
+<dialog id="detail">
+  <button class="close" aria-label="Sluiten" onclick="this.closest('dialog').close()">×</button>
+  <div class="dlg-body" id="detailBody"></div>
+</dialog>
+
+<!-- build.js vult dit in voor de statische versie -->
+<script id="embedded-data" type="application/json"></script>
+<script>
+  const TAG_PALETTE = [
+    ['#dbe7ff', '#1d4ed8', '#1e2a4a', '#9db8ff'],
+    ['#dcf5e6', '#166534', '#16301f', '#86e0a8'],
+    ['#fde7d4', '#9a3412', '#3a2316', '#f8b787'],
+    ['#efe1ff', '#6b21a8', '#2c1d3d', '#cfa6ff'],
+    ['#fde2e7', '#9f1239', '#3a1820', '#f7a3b6'],
+    ['#d9f3f5', '#115e67', '#13303a', '#82d8e0'],
+    ['#fdf3c7', '#854d0e', '#352c12', '#f2d272'],
+  ];
+  const dark = { get matches() { return !document.documentElement.classList.contains('embed') && darkQuery.matches; } };
+  const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+
+  let proposals = [];
+  let allTags = [];
+  const activeTags = new Set();
+  let region = 'all';
+
+  // Nationaal = België; alles met een ander (ingevuld) land is internationaal
+  const HOME_COUNTRIES = ['belgium', 'belgië', 'belgie', 'belgique', 'be'];
+  const regionOf = (p) => !p.country ? 'unknown' : HOME_COUNTRIES.includes(p.country.toLowerCase()) ? 'national' : 'international';
+  const REGIONS = [['all', 'Alle'], ['national', 'Nationaal'], ['international', 'Internationaal']];
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function tagStyle(tag) {
+    const i = allTags.indexOf(tag) % TAG_PALETTE.length;
+    const [bg, fg, dbg, dfg] = TAG_PALETTE[i < 0 ? 0 : i];
+    return dark.matches ? `background:${dbg};color:${dfg}` : `background:${bg};color:${fg}`;
+  }
+  const tagsHtml = (tags) => tags.map((t) => `<span class="tag" style="${tagStyle(t)}">${esc(t)}</span>`).join('');
+  const displayUrl = (url) => url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+
+  function matches(p, q) {
+    if (region !== 'all' && regionOf(p) !== region) return false;
+    if (activeTags.size && ![...activeTags].every((t) => p.tags.includes(t))) return false;
+    if (!q) return true;
+    return [p.company, p.description, p.contact, p.country, ...p.tags].join(' ').toLowerCase().includes(q);
+  }
+
+  function render() {
+    const q = $('search').value.trim().toLowerCase();
+    const visible = proposals.filter((p) => matches(p, q));
+    $('count').textContent = `${visible.length} van ${proposals.length} stagevoorstellen`;
+    $('grid').innerHTML = visible.length
+      ? visible.map((p) => `
+          <button class="card" data-id="${esc(p.id)}">
+            <h2>${esc(p.company || 'Onbekend bedrijf')}</h2>
+            ${p.country ? `<div class="country">${esc(p.country)}</div>` : ''}
+            ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
+            <p class="desc">${esc(p.description)}</p>
+            ${p.contact ? `<div class="contact">Contact: ${esc(p.contact)}</div>` : ''}
+          </button>`).join('')
+      : `<div class="state">Geen stagevoorstellen gevonden voor deze zoekopdracht.</div>`;
+  }
+
+  function renderRegionFilter() {
+    const count = (r) => r === 'all' ? proposals.length : proposals.filter((p) => regionOf(p) === r).length;
+    $('regionFilter').innerHTML = REGIONS.map(([key, label]) =>
+      `<button aria-pressed="${region === key}" data-region="${key}">${label}<span class="n">${count(key)}</span></button>`).join('');
+  }
+
+  function renderTagFilter() {
+    $('tagsFilter').innerHTML = allTags.map((t) =>
+      `<button class="chip" aria-pressed="${activeTags.has(t)}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+  }
+
+  function openDetail(p) {
+    const rows = [
+      p.country && ['Land', esc(p.country)],
+      p.contact && ['Contactpersoon', esc(p.contact)],
+      p.email && ['E-mail', `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`],
+      p.website && ['Website', `<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(displayUrl(p.website))}</a>`],
+    ].filter(Boolean);
+    $('detailBody').innerHTML = `
+      <h2>${esc(p.company || 'Onbekend bedrijf')}</h2>
+      ${p.tags.length ? `<div class="tags">${tagsHtml(p.tags)}</div>` : ''}
+      <p class="full-desc">${esc(p.description)}</p>
+      <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+    $('detail').showModal();
+  }
+
+  $('search').addEventListener('input', render);
+  $('regionFilter').addEventListener('click', (e) => {
+    const key = e.target.closest('button')?.dataset.region;
+    if (!key) return;
+    region = key;
+    renderRegionFilter();
+    render();
+  });
+  $('tagsFilter').addEventListener('click', (e) => {
+    const tag = e.target.closest('.chip')?.dataset.tag;
+    if (!tag) return;
+    activeTags.has(tag) ? activeTags.delete(tag) : activeTags.add(tag);
+    renderTagFilter();
+    render();
+  });
+  $('grid').addEventListener('click', (e) => {
+    const id = e.target.closest('.card')?.dataset.id;
+    const p = proposals.find((x) => x.id === id);
+    if (p) openDetail(p);
+  });
+  $('detail').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+  darkQuery.addEventListener('change', () => { renderTagFilter(); render(); });
+
+  async function load() {
+    const embedded = $('embedded-data').textContent.trim();
+    const data = embedded ? JSON.parse(embedded) : await fetch('/api/proposals').then(async (r) => {
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.error || r.statusText);
+      return json;
+    });
+    // Nieuwste voorstellen eerst
+    proposals = data.proposals.sort((a, b) => String(b.created).localeCompare(String(a.created)));
+    allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'nl'));
+    if (data.updatedAt) {
+      $('updated').textContent = `Bijgewerkt: ${new Date(data.updatedAt).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' })}`;
+    }
+    renderRegionFilter();
+    renderTagFilter();
+    render();
+  }
+
+  load().catch((err) => {
+    console.error(err);
+    $('grid').innerHTML = `<div class="state">Kon de stagevoorstellen niet laden.<br><small>${esc(err.message)}</small></div>`;
+  });
+</script>
+</body>
+</html>

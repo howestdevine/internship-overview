@@ -1,0 +1,12 @@
+{
+  "name": "stage-overview-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Webpagina met de goedgekeurde stagevoorstellen uit Airtable",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "build": "node --env-file-if-exists=.env build.js"
+  },
+  "engines": { "node": ">=20.6" }
+}

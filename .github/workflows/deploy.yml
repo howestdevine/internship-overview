@@ -1,0 +1,51 @@
+# Bouwt dist/index.html met de goedgekeurde stagevoorstellen uit Airtable
+# en publiceert die op GitHub Pages.
+name: Publiceer stage-overzicht
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Elk uur tussen 6u en 22u (UTC), maandag t/m vrijdag
+    - cron: '0 5-21 * * 1-5'
+  workflow_dispatch: # handmatig starten via het tabblad Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bouw pagina met Airtable-data
+        run: npm run build
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: appHL1csrQht0R0lT
+          AIRTABLE_TABLE: tbl0mLu5Yh1OdgMdh
+          AIRTABLE_VIEW: viw9HZhqdLERzl3u7
+          STATUS_FIELD: Status
+          STATUS_VALUE: Goedgekeurd
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
