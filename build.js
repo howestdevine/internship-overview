@@ -3,7 +3,11 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { getProposals } from './lib/airtable.js';
 
-const proposals = await getProposals();
+// E-mailadressen niet leesbaar in de broncode zetten, zodat spambots ze niet zomaar oppikken.
+// De pagina decodeert ze in de browser (omgekeerde base64).
+const hideEmail = (email) => email ? [...Buffer.from(email, 'utf8').toString('base64')].reverse().join('') : '';
+
+const proposals = (await getProposals()).map(({ email, ...p }) => ({ ...p, emailEnc: hideEmail(email) }));
 const payload = JSON.stringify({ proposals, updatedAt: new Date().toISOString() }).replace(/</g, '\\u003c');
 
 const template = await readFile(new URL('./public/index.html', import.meta.url), 'utf8');

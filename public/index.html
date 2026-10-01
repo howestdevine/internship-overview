@@ -488,6 +488,9 @@
       return json;
     });
     // Nieuwste voorstellen eerst
+    // De statische versie bevat de e-mailadressen gecodeerd (zie build.js)
+    const revealEmail = (enc) => new TextDecoder().decode(Uint8Array.from(atob([...enc].reverse().join('')), (c) => c.charCodeAt(0)));
+    data.proposals.forEach((p) => { if (p.emailEnc) p.email = revealEmail(p.emailEnc); });
     proposals = data.proposals.sort((a, b) => String(b.created).localeCompare(String(a.created)));
     allTags = [...new Set(proposals.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b, 'en'));
     assignSlugs();
