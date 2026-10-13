@@ -21,7 +21,7 @@ const updatedAt = new Date().toISOString();
 // Paginabezoeken tellen we zelf (auto-track uit), anders telt elke filterwijziging als bezoek.
 const umamiId = process.env.UMAMI_WEBSITE_ID;
 const analytics = umamiId
-  ? `<script defer src="https://cloud.umami.is/script.js" data-website-id="${umamiId}" data-domains="devinekask.github.io" data-auto-track="false"></script>`
+  ? `<script defer src="https://cloud.umami.is/script.js" data-website-id="${umamiId}" data-domains="howestdevine.github.io" data-auto-track="false"></script>`
   : '';
 
 const payload = JSON.stringify({ proposals, updatedAt, buildId }).replace(/</g, '\\u003c');
